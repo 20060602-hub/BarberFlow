@@ -171,3 +171,26 @@ app.post('/api/appointments', async (req, res) => {
     res.status(201).json(appointment);
   } catch(e){ res.status(500).json({ error: e.message }); }
 });
+
+app.put('/api/appointments/:id', async (req, res) => {
+  try {
+    const { customerId, serviceId, appointment_date, start_time, status } = req.body;
+    const row = await db.getById('appointments', req.params.id);
+    if (!row) return res.status(404).json({ error: 'Appointment not found' });
+
+    if ((appointment_date && appointment_date !== row.appointment_date) || (start_time && start_time !== row.start_time)) {
+      const all = await db.list('appointments');
+      const conflict = all.find(a => a.id !== row.id && a.appointment_date === (appointment_date||row.appointment_date) && a.start_time === (start_time||row.start_time));
+      if (conflict) return res.status(409).json({ error: 'Time slot already taken' });
+    }
+
+    const updated = await db.update('appointments', req.params.id, {
+      customer_id: customerId || row.customer_id,
+      service_id: serviceId || row.service_id,
+      appointment_date: appointment_date || row.appointment_date,
+      start_time: start_time || row.start_time,
+      status: status || row.status
+    });
+    res.json(updated);
+  } catch(e){ res.status(500).json({ error: e.message }); }
+});
