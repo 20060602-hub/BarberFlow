@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Barbershop Booking</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    /* Simple, clean layout */
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --muted: #666;
+      --accent: #0b74de;
+      --danger: #e74c3c;
+    }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: var(--bg);
+      color: #222;
+      margin: 20px;
+      line-height: 1.4;
+    }
+    h1 { margin: 0 0 12px; font-size: 28px; }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .card {
+      background: var(--card);
+      padding: 14px;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(20,20,30,0.05);
+    }
