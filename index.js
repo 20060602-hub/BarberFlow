@@ -194,3 +194,17 @@ app.put('/api/appointments/:id', async (req, res) => {
     res.json(updated);
   } catch(e){ res.status(500).json({ error: e.message }); }
 });
+
+app.delete('/api/appointments/:id', async (req, res) => {
+  try {
+    await db.remove('appointments', req.params.id);
+    res.json({ success: true });
+  } catch(e){ res.status(500).json({ error: e.message }); }
+});
+
+/* ---------- Server ---------- */
+const PORT = process.env.PORT || 3000;
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`Server (JSON) listening on ${PORT}`));
+}
+module.exports = app;
