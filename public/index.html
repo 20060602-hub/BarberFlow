@@ -67,3 +67,26 @@
   </style>
 </head>
 <body>
+    <h1>Barbershop Booking </h1>
+
+  <div class="container">
+    <!-- Customers -->
+    <div class="card">
+      <div class="section-title">Customers</div>
+      <div id="custNotice" class="notice" style="display:none"></div>
+
+      <div id="customerForm">
+        <label>Name</label>
+        <input id="custName" type="text" placeholder="Full name">
+        <label>Phone</label>
+        <input id="custPhone" type="text" placeholder="Phone (optional)">
+        <div style="margin-top:8px">
+          <button id="addCustBtn">Add Customer</button>
+          <button id="saveCustBtn" style="display:none" class="secondary">Save</button>
+          <button id="cancelCustBtn" style="display:none" class="secondary">Cancel</button>
+        </div>
+      </div>
+
+      <h4 style="margin-top:12px">All customers</h4>
+      <ul id="custList"></ul>
+    </div>
