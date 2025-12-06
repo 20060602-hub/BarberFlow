@@ -119,3 +119,50 @@
       <h4 style="margin-top:12px">All services</h4>
       <ul id="servList"></ul>
     </div>
+
+    <!-- Appointments (full width) -->
+    <div class="card full-width">
+      <div class="section-title">Appointments</div>
+      <div id="apNotice" class="notice" style="display:none"></div>
+
+      <div id="appointmentForm" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div style="flex: 2 1 200px;">
+          <label>Customer</label>
+          <select id="apCust"></select>
+        </div>
+        <div style="flex: 2 1 200px;">
+          <label>Service</label>
+          <select id="apServ"></select>
+        </div>
+        <div style="flex: 1 1 150px;">
+          <label>Date</label>
+          <input id="apDate" type="date">
+        </div>
+        <div style="flex: 1 1 150px;">
+          <label>Time</label>
+          <!-- time input may be unsupported on some browsers; we have a fallback text input -->
+          <input id="apTime" type="time" placeholder="HH:MM">
+          <input id="apTimeText" type="text" placeholder="HH:MM (fallback)" style="display:none;margin-top:6px">
+        </div>
+
+        <div style="align-self:end;">
+          <button id="addApBtn">Book</button>
+          <button id="saveApBtn" style="display:none" class="secondary">Save</button>
+          <button id="cancelApBtn" style="display:none" class="secondary">Cancel</button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <label>Show appointments for date</label>
+        <div class="row" style="align-items:center;">
+          <input id="filterDate" type="date">
+          <button id="filterBtn" class="secondary">Filter</button>
+          <button id="allBtn" class="secondary">Show All</button>
+        </div>
+      </div>
+
+      <h4 style="margin-top:12px">Appointments (by date)</h4>
+      <ul id="apList"></ul>
+    </div>
+  </div>
+
