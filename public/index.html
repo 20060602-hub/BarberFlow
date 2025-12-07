@@ -404,4 +404,113 @@ document.getElementById('cancelServBtn').addEventListener('click', () => {
   document.getElementById('cancelServBtn').style.display='none';
 });
 
+/* ---------- CRUD for Appointments ---------- */
+let editingApptId = null;
+
+function getTimeValue() {
+  // prefer native time input if present and non-empty, else fallback text input
+  const tNative = document.getElementById('apTime').value;
+  if (tNative) return tNative;
+  const tText = document.getElementById('apTimeText').value.trim();
+  if (tText) return tText;
+  return '';
+}
+
+function normalizeTime(t) {
+  // if user typed "2:12 PM", attempt to convert to 24-hour "14:12"
+  const m = t.match(/^(\d{1,2}):(\d{2})(?:\s*([AaPp][Mm]))?$/);
+  if (!m) return t; // return as-is (server will validate)
+  let hh = parseInt(m[1],10), mm = m[2], ampm = m[3];
+  if (ampm) {
+    ampm = ampm.toUpperCase();
+    if (ampm === 'PM' && hh < 12) hh = hh + 12;
+    if (ampm === 'AM' && hh === 12) hh = 0;
+  }
+  hh = hh.toString().padStart(2,'0');
+  return `${hh}:${mm}`;
+}
+
+document.getElementById('addApBtn').addEventListener('click', async () => {
+  const customerId = document.getElementById('apCust').value;
+  const serviceId = document.getElementById('apServ').value;
+  const appointment_date = document.getElementById('apDate').value;
+  let start_time = getTimeValue();
+  start_time = normalizeTime(start_time);
+
+  if (!customerId) return showNotice('apNotice','Select a customer');
+  if (!serviceId) return showNotice('apNotice','Select a service');
+  if (!appointment_date) return showNotice('apNotice','Select a date (YYYY-MM-DD)');
+  if (!start_time) return showNotice('apNotice','Enter a time (HH:MM)');
+
+  const res = await apiFetch('appointments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customerId, serviceId, appointment_date, start_time }) });
+  if (res.status === 201) {
+    document.getElementById('apDate').value=''; document.getElementById('apTime').value=''; document.getElementById('apTimeText').value='';
+    await refreshAppointments(appointment_date); showNotice('apNotice','Appointment booked');
+  } else {
+    showNotice('apNotice', res.body.error || 'Booking failed', 6000);
+  }
+});
+
+document.getElementById('filterBtn').addEventListener('click', () => {
+  const date = document.getElementById('filterDate').value;
+  refreshAppointments(date || null);
+});
+document.getElementById('allBtn').addEventListener('click', () => refreshAppointments());
+
+document.getElementById('apList').addEventListener('click', async (e) => {
+  if (e.target.matches('.editApBtn')) {
+    const id = e.target.dataset.id;
+    const res = await apiFetch('appointments/' + id);
+    if (res.status === 200) {
+      const a = res.body;
+      editingApptId = id;
+      // populate form
+      document.getElementById('apCust').value = a.customer_id || a.customerId || '';
+      document.getElementById('apServ').value = a.service_id || a.serviceId || '';
+      document.getElementById('apDate').value = a.appointment_date || '';
+      // show time in appropriate input
+      if (supportsInputType('time')) {
+        document.getElementById('apTime').value = a.start_time || '';
+      } else {
+        document.getElementById('apTimeText').value = a.start_time || '';
+      }
+      document.getElementById('addApBtn').style.display='none';
+      document.getElementById('saveApBtn').style.display='inline-block';
+      document.getElementById('cancelApBtn').style.display='inline-block';
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+  } else if (e.target.matches('.delApBtn')) {
+    const id = e.target.dataset.id;
+    if (!confirm('Delete this appointment?')) return;
+    const res = await apiFetch('appointments/' + id, { method:'DELETE' });
+    if (res.status === 200) { await refreshAppointments(); showNotice('apNotice','Appointment deleted'); }
+    else showNotice('apNotice', res.body.error || 'Delete failed');
+  }
+});
+
+document.getElementById('saveApBtn').addEventListener('click', async () => {
+  const customerId = document.getElementById('apCust').value;
+  const serviceId = document.getElementById('apServ').value;
+  const appointment_date = document.getElementById('apDate').value;
+  let start_time = getTimeValue();
+  start_time = normalizeTime(start_time);
+
+  if (!customerId) return showNotice('apNotice','Select a customer');
+  if (!serviceId) return showNotice('apNotice','Select a service');
+  if (!appointment_date) return showNotice('apNotice','Select a date (YYYY-MM-DD)');
+  if (!start_time) return showNotice('apNotice','Enter a time (HH:MM)');
+
+  const res = await apiFetch('appointments/' + editingApptId, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customerId, serviceId, appointment_date, start_time })});
+  if (res.status === 200) {
+    editingApptId = null;
+    document.getElementById('apDate').value=''; document.getElementById('apTime').value=''; document.getElementById('apTimeText').value='';
+    document.getElementById('addApBtn').style.display='inline-block';
+    document.getElementById('saveApBtn').style.display='none';
+    document.getElementById('cancelApBtn').style.display='none';
+    await refreshAppointments(); showNotice('apNotice','Appointment updated');
+  } else {
+    showNotice('apNotice', res.body.error || 'Update failed', 6000);
+  }
+});
+
 
