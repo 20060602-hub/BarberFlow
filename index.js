@@ -155,3 +155,19 @@ app.post('/api/appointments', async (req, res) => {
     const serv = await db.getById('services', serviceId);
     if (!cust) return res.status(400).json({ error: 'Customer not found' });
     if (!serv) return res.status(400).json({ error: 'Service not found' });
+
+    // conflict check: same date & start_time (single-barber assumption)
+    const appts = await db.list('appointments');
+    const conflict = appts.find(a => a.appointment_date === appointment_date && a.start_time === start_time);
+    if (conflict) return res.status(409).json({ error: 'Time slot already taken' });
+
+    const appointment = await db.create('appointments', {
+      customer_id: customerId,
+      service_id: serviceId,
+      appointment_date,
+      start_time,
+      status: 'booked'
+    });
+    res.status(201).json(appointment);
+  } catch(e){ res.status(500).json({ error: e.message }); }
+});
