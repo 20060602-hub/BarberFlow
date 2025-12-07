@@ -224,4 +224,53 @@ async function refreshCustomers() {
   });
 }
 
+async function refreshServices() {
+  const { body } = await apiFetch('services');
+  const list = document.getElementById('servList');
+  const select = document.getElementById('apServ');
+  list.innerHTML = '';
+  select.innerHTML = '<option value="">-- select service --</option>';
+  body.forEach(s => {
+    const li = document.createElement('li');
+    li.className = 'item';
+    li.innerHTML = `
+      <div>
+        <strong>${escapeHtml(s.title)}</strong>
+        <div class="meta">${s.duration_min} min • £${s.price}</div>
+      </div>
+      <div class="controls">
+        <button data-id="${s.id}" class="editServBtn secondary">Edit</button>
+        <button data-id="${s.id}" class="delServBtn danger">Delete</button>
+      </div>`;
+    list.appendChild(li);
+
+    const opt = document.createElement('option');
+    opt.value = s.id; opt.textContent = s.title;
+    select.appendChild(opt);
+  });
+}
+
+async function refreshAppointments(date=null) {
+  let path = 'appointments';
+  if (date) path += '?date=' + encodeURIComponent(date);
+  const { body } = await apiFetch(path);
+  const list = document.getElementById('apList');
+  list.innerHTML = '';
+  body.forEach(a => {
+    const li = document.createElement('li');
+    li.className = 'item';
+    const customer = a.customer_name || a.customer_id;
+    const service = a.service_title || a.service_id;
+    li.innerHTML = `
+      <div>
+        <strong>${a.appointment_date} ${a.start_time}</strong>
+        <div class="meta">${customer} • ${service} • status: ${a.status}</div>
+      </div>
+      <div class="controls">
+        <button data-id="${a.id}" class="editApBtn secondary">Edit</button>
+        <button data-id="${a.id}" class="delApBtn danger">Delete</button>
+      </div>`;
+    list.appendChild(li);
+  });
+}
 
