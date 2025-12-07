@@ -1,43 +1,91 @@
-// index.js
+// index.js - BarberFlow backend (full CRUD)
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const db = require('./db_json');
-const { ensureDataDir } = require('./db_json'); // <--- ADD THIS LINE
 
 const app = express();
+app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-/* ---------- Customers ---------- */
-// ... (Your original customer routes here)
+// Helper to validate id
+function isValidId(id) {
+  return id !== undefined && id !== null && String(id).length > 0;
+}
 
-app.get('/api/customers', async (req, res) => {
-  try {
-    const rows = await db.list('customers');
-    rows.sort((a,b) => (a.name||'').localeCompare(b.name||''));
-    res.json(rows);
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
-// ... (rest of customer routes)
+function mapRoutes(resource) {
+  const base = `/api/${resource}`;
 
-app.get('/api/customers/:id', async (req, res) => {
-  try {
-    const row = await db.getById('customers', req.params.id);
-    if (!row) return res.status(404).json({ error: 'Customer not found' });
-    res.json(row);
-  } catch(e){ res.status(500).json({ error: e.message }); }
-});
-// ... (rest of index.js, including Services and Appointments)
+  // list
+  app.get(base, async (req, res) => {
+    try {
+      const items = await db.list(resource);
+      res.json(items);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 
-/* ---------- Server ---------- */
-const PORT = process.env.PORT || 3000;
-if (require.main === module) {
-  // Call ensureDataDir before starting the server
-  ensureDataDir().then(() => {
-    app.listen(PORT, () => console.log(`Server (JSON) listening on ${PORT}`));
-  }).catch(err => {
-    console.error("Fatal Error during setup:", err);
-    process.exit(1);
+  // get by id
+  app.get(`${base}/:id`, async (req, res) => {
+    try {
+      const item = await db.getById(resource, req.params.id);
+      if (!item) return res.status(404).json({ error: `${resource.slice(0,-1)} not found` });
+      res.json(item);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // create
+  app.post(base, async (req, res) => {
+    try {
+      const created = await db.create(resource, req.body);
+      res.status(201).json(created);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // update
+  app.put(`${base}/:id`, async (req, res) => {
+    try {
+      if (!isValidId(req.params.id)) return res.status(400).json({ error: 'Invalid id' });
+      const updated = await db.update(resource, req.params.id, req.body);
+      res.json(updated);
+    } catch (err) {
+      if (/not found/i.test(err.message)) return res.status(404).json({ error: err.message });
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // delete
+  app.delete(`${base}/:id`, async (req, res) => {
+    try {
+      if (!isValidId(req.params.id)) return res.status(400).json({ error: 'Invalid id' });
+      const result = await db.remove(resource, req.params.id);
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   });
 }
+
+// Create routes for the three collections
+['customers', 'services', 'appointments'].forEach(mapRoutes);
+
+// Serve index
+app.get('/', (req, res) => res.sendFile('index.html', { root: 'public' }));
+
+const PORT = process.env.PORT || 3000;
+db.ensureDataDir()
+  .then(() => {
+    app.listen(PORT, () => console.log(`BarberFlow listening on ${PORT}`));
+  })
+  .catch(err => {
+    console.error('Failed to prepare data folder:', err);
+    process.exit(1);
+  });
+
 module.exports = app;

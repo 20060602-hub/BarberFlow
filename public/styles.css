@@ -1,0 +1,65 @@
+/* styles.css - match screenshot 1 look */
+:root{
+  --bg:#f5f7fb;
+  --card:#ffffff;
+  --muted:#6b7280;
+  --accent:#0b5fff;
+  --accent-shadow: rgba(11,95,255,0.12);
+  --border: rgba(0,0,0,0.06);
+  --radius:18px;
+}
+
+*{box-sizing:border-box}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; margin:0; background:var(--bg); color:#111; -webkit-font-smoothing:antialiased}
+
+.container{max-width:1200px;margin:28px auto;padding:0 20px}
+.site-header{padding:6px 0}
+.title{font-size:34px;margin:8px 0 18px;font-weight:700}
+
+/* layout */
+.grid.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.mt{margin-top:18px}
+
+/* cards */
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:26px;
+  box-shadow:0 16px 40px rgba(15,18,30,0.04);
+  border:1px solid var(--border);
+}
+
+/* headings */
+.card h2{margin:0 0 14px;font-size:20px}
+.subhead{margin:18px 0 8px;font-size:16px}
+
+/* forms */
+.form .field{display:block;margin-bottom:12px}
+.field .label{font-size:13px;color:var(--muted);margin-bottom:8px}
+input,select,textarea{width:100%;padding:12px 14px;border:1px solid rgba(0,0,0,0.06);border-radius:10px;background:#fff;outline:none}
+input:focus,select:focus,textarea:focus{box-shadow:0 4px 14px rgba(11,95,255,0.06);border-color:rgba(11,95,255,0.15)}
+
+.row{display:flex;gap:12px;align-items:center}
+.fields{gap:12px}
+.btn{padding:10px 14px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:#fff;cursor:pointer;box-shadow:none}
+.btn.primary{background:var(--accent);color:#fff;border:0;box-shadow:0 8px 20px var(--accent-shadow)}
+.btn.neutral{background:#f1f2f4;color:#111;border:0;padding:10px 20px;border-radius:10px}
+
+/* lists & tables */
+.list{margin-top:12px}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:12px;border-bottom:1px solid #f1f2f4;text-align:left;font-size:14px}
+.table th{font-weight:700;color:var(--muted);font-size:13px}
+
+/* filter area */
+.filter{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.field-inline{display:flex;flex-direction:column;min-width:240px}
+
+/* footer */
+.site-footer{margin:28px 0;padding:16px 0;color:var(--muted);text-align:left}
+
+/* responsive */
+@media (max-width:980px){
+  .grid.two{grid-template-columns:1fr}
+  .row{flex-direction:column;align-items:stretch}
+}
