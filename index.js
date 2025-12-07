@@ -52,3 +52,49 @@ app.delete('/api/customers/:id', async (req, res) => {
     res.json({ success: true });
   } catch(e){ res.status(500).json({ error: e.message }); }
 });
+
+/* ---------- Services ---------- */
+app.get('/api/services', async (req, res) => {
+  try {
+    const rows = await db.list('services');
+    rows.sort((a,b) => (a.title||'').localeCompare(b.title||''));
+    res.json(rows);
+  } catch(e){ res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/services/:id', async (req, res) => {
+  try {
+    const row = await db.getById('services', req.params.id);
+    if (!row) return res.status(404).json({ error: 'Service not found' });
+    res.json(row);
+  } catch(e){ res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/services', async (req, res) => {
+  try {
+    const { title, duration_min, price } = req.body;
+    if (!title || !duration_min || price == null) return res.status(400).json({ error: 'Missing fields' });
+    const service = await db.create('services', { title, duration_min, price });
+    res.status(201).json(service);
+  } catch(e){ res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/services/:id', async (req, res) => {
+  try {
+    const { title, duration_min, price } = req.body;
+    const updated = await db.update('services', req.params.id, { title, duration_min, price });
+    if (!updated) return res.status(404).json({ error: 'Service not found' });
+    res.json(updated);
+  } catch(e){ res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/services/:id', async (req, res) => {
+  try {
+    await db.remove('services', req.params.id);
+    // cascade-delete appointments referencing this service
+    const appts = await db.list('appointments');
+    const remaining = appts.filter(a => String(a.service_id) !== String(req.params.id));
+    await db.writeRaw('appointments', remaining);
+    res.json({ success: true });
+  } catch(e){ res.status(500).json({ error: e.message }); }
+});
