@@ -3,7 +3,26 @@ const fs = require('fs').promises;
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
-const dataDir = path.join(__dirname, 'data');
+// --- FIX: Use /tmp/data for persistence on deployment ---
+const dataDir = process.env.NODE_ENV === 'production' 
+  ? '/tmp/data' // Use writeable /tmp/data on platforms like Render
+  : path.join(__dirname, 'data'); // Use local data folder for development
+
+// --- New function to ensure directory and initial files exist ---
+async function ensureInitialFiles() {
+  await fs.mkdir(dataDir, { recursive: true });
+  const files = ['customers', 'services', 'appointments'];
+  for (const name of files) {
+    const p = path.join(dataDir, `${name}.json`);
+    try {
+      await fs.access(p); // Check if file exists
+    } catch (e) {
+      // If file doesn't exist, create it with empty array
+      await fs.writeFile(p, '[]', 'utf8');
+      console.log(`Created empty ${name}.json in ${dataDir}`);
+    }
+  }
+}
 
 async function readRaw(name) {
   const p = path.join(dataDir, `${name}.json`);
@@ -56,5 +75,6 @@ async function remove(name, id) {
 }
 
 module.exports = {
-  list, getById, create, update, remove, writeRaw
+  list, getById, create, update, remove, writeRaw,
+  ensureDataDir: ensureInitialFiles // Exported function to be called from index.js
 };
