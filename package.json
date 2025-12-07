@@ -1,5 +1,10 @@
 {
   "dependencies": {
-    "uuid": "^13.0.0"
+    "uuid": "^3.0.0"
+    // Add any other dependencies your project needs here
+  },
+  "scripts": {
+    "start": "node index.js",
+    "build": "echo 'No build step required for backend'"
   }
 }
