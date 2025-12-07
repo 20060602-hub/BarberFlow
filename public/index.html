@@ -90,3 +90,32 @@
       <h4 style="margin-top:12px">All customers</h4>
       <ul id="custList"></ul>
     </div>
+
+    <!-- Services -->
+    <div class="card">
+      <div class="section-title">Services</div>
+      <div id="servNotice" class="notice" style="display:none"></div>
+
+      <div id="serviceForm">
+        <label>Title</label>
+        <input id="servTitle" type="text" placeholder="e.g. Men's Haircut">
+        <div class="row">
+          <div>
+            <label>Duration (min)</label>
+            <input id="servDuration" type="number" placeholder="30">
+          </div>
+          <div>
+            <label>Price</label>
+            <input id="servPrice" type="number" placeholder="15">
+          </div>
+        </div>
+        <div style="margin-top:8px">
+          <button id="addServBtn">Add Service</button>
+          <button id="saveServBtn" style="display:none" class="secondary">Save</button>
+          <button id="cancelServBtn" style="display:none" class="secondary">Cancel</button>
+        </div>
+      </div>
+
+      <h4 style="margin-top:12px">All services</h4>
+      <ul id="servList"></ul>
+    </div>
