@@ -166,3 +166,26 @@
     </div>
   </div>
 
+<script>
+/* ---------- Utilities ---------- */
+const apiFetch = async (path, opts={}) => {
+  const res = await fetch('/api/' + path, opts);
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch(e) { data = text; }
+  return { status: res.status, body: data };
+};
+
+function showNotice(id, msg, timeout=3500) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+  if (timeout) setTimeout(()=> el.style.display = 'none', timeout);
+}
+
+function supportsInputType(t) {
+  const i = document.createElement('input');
+  i.setAttribute('type', t);
+  return i.type === t;
+}
+
