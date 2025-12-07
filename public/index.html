@@ -339,3 +339,69 @@ document.getElementById('cancelCustBtn').addEventListener('click', () => {
   document.getElementById('cancelCustBtn').style.display='none';
 });
 
+/* ---------- CRUD for Services ---------- */
+let editingServiceId = null;
+
+document.getElementById('addServBtn').addEventListener('click', async () => {
+  const title = document.getElementById('servTitle').value.trim();
+  const duration_min = parseInt(document.getElementById('servDuration').value,10);
+  const price = parseFloat(document.getElementById('servPrice').value);
+  if (!title) return showNotice('servNotice','Service title required');
+  if (!(duration_min>0)) return showNotice('servNotice','Duration must be positive');
+  if (isNaN(price)) return showNotice('servNotice','Price must be a number');
+  const res = await apiFetch('services', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title, duration_min, price })});
+  if (res.status === 201) {
+    document.getElementById('servTitle').value=''; document.getElementById('servDuration').value=''; document.getElementById('servPrice').value='';
+    await refreshServices(); showNotice('servNotice','Service added');
+  } else showNotice('servNotice', res.body.error || 'Add failed');
+});
+
+document.getElementById('servList').addEventListener('click', async (e) => {
+  if (e.target.matches('.editServBtn')) {
+    const id = e.target.dataset.id;
+    const res = await apiFetch('services/' + id);
+    if (res.status === 200) {
+      editingServiceId = id;
+      document.getElementById('servTitle').value = res.body.title || '';
+      document.getElementById('servDuration').value = res.body.duration_min || '';
+      document.getElementById('servPrice').value = res.body.price || '';
+      document.getElementById('addServBtn').style.display='none';
+      document.getElementById('saveServBtn').style.display='inline-block';
+      document.getElementById('cancelServBtn').style.display='inline-block';
+    }
+  } else if (e.target.matches('.delServBtn')) {
+    const id = e.target.dataset.id;
+    if (!confirm('Delete this service and related appointments?')) return;
+    const res = await apiFetch('services/' + id, { method:'DELETE' });
+    if (res.status === 200) { await refreshServices(); await refreshAppointments(); showNotice('servNotice','Service deleted'); }
+    else showNotice('servNotice', res.body.error || 'Delete failed');
+  }
+});
+
+document.getElementById('saveServBtn').addEventListener('click', async () => {
+  const title = document.getElementById('servTitle').value.trim();
+  const duration_min = parseInt(document.getElementById('servDuration').value,10);
+  const price = parseFloat(document.getElementById('servPrice').value);
+  if (!title) return showNotice('servNotice','Service title required');
+  if (!(duration_min>0)) return showNotice('servNotice','Duration must be positive');
+  if (isNaN(price)) return showNotice('servNotice','Price must be a number');
+  const res = await apiFetch('services/' + editingServiceId, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title, duration_min, price })});
+  if (res.status === 200) {
+    editingServiceId = null;
+    document.getElementById('servTitle').value=''; document.getElementById('servDuration').value=''; document.getElementById('servPrice').value='';
+    document.getElementById('addServBtn').style.display='inline-block';
+    document.getElementById('saveServBtn').style.display='none';
+    document.getElementById('cancelServBtn').style.display='none';
+    await refreshServices(); showNotice('servNotice','Service updated');
+  } else showNotice('servNotice', res.body.error || 'Update failed');
+});
+
+document.getElementById('cancelServBtn').addEventListener('click', () => {
+  editingServiceId = null;
+  document.getElementById('servTitle').value=''; document.getElementById('servDuration').value=''; document.getElementById('servPrice').value='';
+  document.getElementById('addServBtn').style.display='inline-block';
+  document.getElementById('saveServBtn').style.display='none';
+  document.getElementById('cancelServBtn').style.display='none';
+});
+
+
