@@ -189,3 +189,39 @@ function supportsInputType(t) {
   return i.type === t;
 }
 
+/* ---------- Fallback for time input ---------- */
+(function timeFallback() {
+  const support = supportsInputType('time');
+  if (!support) {
+    document.getElementById('apTime').style.display = 'none';
+    document.getElementById('apTimeText').style.display = 'block';
+  }
+})();
+
+/* ---------- Rendering helpers ---------- */
+async function refreshCustomers() {
+  const { body } = await apiFetch('customers');
+  const list = document.getElementById('custList');
+  const select = document.getElementById('apCust');
+  list.innerHTML = '';
+  select.innerHTML = '<option value="">-- select customer --</option>';
+  body.forEach(c => {
+    const li = document.createElement('li');
+    li.className = 'item';
+    li.innerHTML = `
+      <div>
+        <strong>${escapeHtml(c.name)}</strong><div class="meta">${c.phone || ''} • ${c.email || ''}</div>
+      </div>
+      <div class="controls">
+        <button data-id="${c.id}" class="editCustBtn secondary">Edit</button>
+        <button data-id="${c.id}" class="delCustBtn danger">Delete</button>
+      </div>`;
+    list.appendChild(li);
+
+    const opt = document.createElement('option');
+    opt.value = c.id; opt.textContent = c.name;
+    select.appendChild(opt);
+  });
+}
+
+
