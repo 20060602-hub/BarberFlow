@@ -98,3 +98,38 @@ app.delete('/api/services/:id', async (req, res) => {
     res.json({ success: true });
   } catch(e){ res.status(500).json({ error: e.message }); }
 });
+
+/* ---------- Appointments ---------- */
+function isValidDate(str) {
+  // simple YYYY-MM-DD check
+  return /^\d{4}-\d{2}-\d{2}$/.test(str) && !isNaN(Date.parse(str));
+}
+function isValidTime(str) {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(str);
+}
+
+app.get('/api/appointments', async (req, res) => {
+  try {
+    const { date, customerId } = req.query;
+    let rows = await db.list('appointments');
+    const customers = await db.list('customers');
+    const services = await db.list('services');
+
+    if (date) rows = rows.filter(r => r.appointment_date === date);
+    if (customerId) rows = rows.filter(r => String(r.customer_id) === String(customerId));
+
+    rows = rows.map(a => {
+      const customer = customers.find(c => String(c.id) === String(a.customer_id)) || {};
+      const service = services.find(s => String(s.id) === String(a.service_id)) || {};
+      return {
+        ...a,
+        customer_name: customer.name || null,
+        service_title: service.title || null,
+        duration_min: service.duration_min || null
+      };
+    });
+
+    rows.sort((a,b) => (a.appointment_date + ' ' + a.start_time).localeCompare(b.appointment_date + ' ' + b.start_time));
+    res.json(rows);
+  } catch(e){ res.status(500).json({ error: e.message }); }
+});
