@@ -274,3 +274,68 @@ async function refreshAppointments(date=null) {
   });
 }
 
+/* escape minimal to avoid injecting values into DOM */
+function escapeHtml(s='') {
+  return String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+/* ---------- CRUD actions for Customers ---------- */
+let editingCustomerId = null;
+document.getElementById('addCustBtn').addEventListener('click', async () => {
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  if (!name) return showNotice('custNotice', 'Name is required');
+  const { status, body } = await apiFetch('customers', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, phone })});
+  if (status === 201) {
+    document.getElementById('custName').value=''; document.getElementById('custPhone').value='';
+    await refreshCustomers(); showNotice('custNotice', 'Customer added');
+  } else {
+    showNotice('custNotice', body.error || 'Failed to add customer');
+  }
+});
+
+document.getElementById('custList').addEventListener('click', async (e) => {
+  if (e.target.matches('.editCustBtn')) {
+    const id = e.target.dataset.id;
+    const res = await apiFetch('customers/' + id);
+    if (res.status === 200) {
+      const c = res.body;
+      editingCustomerId = id;
+      document.getElementById('custName').value = c.name || '';
+      document.getElementById('custPhone').value = c.phone || '';
+      document.getElementById('addCustBtn').style.display='none';
+      document.getElementById('saveCustBtn').style.display='inline-block';
+      document.getElementById('cancelCustBtn').style.display='inline-block';
+    }
+  } else if (e.target.matches('.delCustBtn')) {
+    const id = e.target.dataset.id;
+    if (!confirm('Delete this customer and their appointments?')) return;
+    const res = await apiFetch('customers/' + id, { method:'DELETE' });
+    if (res.status === 200) { await refreshCustomers(); await refreshAppointments(); showNotice('custNotice','Customer deleted'); }
+    else showNotice('custNotice', res.body.error || 'Delete failed');
+  }
+});
+
+document.getElementById('saveCustBtn').addEventListener('click', async () => {
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  if (!name) return showNotice('custNotice','Name required');
+  const res = await apiFetch('customers/' + editingCustomerId, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, phone })});
+  if (res.status === 200) {
+    editingCustomerId = null;
+    document.getElementById('custName').value=''; document.getElementById('custPhone').value='';
+    document.getElementById('addCustBtn').style.display='inline-block';
+    document.getElementById('saveCustBtn').style.display='none';
+    document.getElementById('cancelCustBtn').style.display='none';
+    await refreshCustomers(); showNotice('custNotice','Customer updated');
+  } else showNotice('custNotice', res.body.error || 'Update failed');
+});
+
+document.getElementById('cancelCustBtn').addEventListener('click', () => {
+  editingCustomerId = null;
+  document.getElementById('custName').value=''; document.getElementById('custPhone').value='';
+  document.getElementById('addCustBtn').style.display='inline-block';
+  document.getElementById('saveCustBtn').style.display='none';
+  document.getElementById('cancelCustBtn').style.display='none';
+});
+
