@@ -133,3 +133,25 @@ app.get('/api/appointments', async (req, res) => {
     res.json(rows);
   } catch(e){ res.status(500).json({ error: e.message }); }
 });
+
+
+app.get('/api/appointments/:id', async (req, res) => {
+  try {
+    const row = await db.getById('appointments', req.params.id);
+    if (!row) return res.status(404).json({ error: 'Appointment not found' });
+    res.json(row);
+  } catch(e){ res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/appointments', async (req, res) => {
+  try {
+    const { customerId, serviceId, appointment_date, start_time } = req.body;
+    if (!customerId || !serviceId || !appointment_date || !start_time)
+      return res.status(400).json({ error: 'Missing fields' });
+    if (!isValidDate(appointment_date)) return res.status(400).json({ error: 'Invalid date format (YYYY-MM-DD)' });
+    if (!isValidTime(start_time)) return res.status(400).json({ error: 'Invalid time format (HH:MM)' });
+
+    const cust = await db.getById('customers', customerId);
+    const serv = await db.getById('services', serviceId);
+    if (!cust) return res.status(400).json({ error: 'Customer not found' });
+    if (!serv) return res.status(400).json({ error: 'Service not found' });
