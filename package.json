@@ -1,10 +1,29 @@
 {
-  "dependencies": {
-    "uuid": "^3.0.0"
-    // Add any other dependencies your project needs here
+  "name": "barberflow",
+  "version": "1.0.0",
+  "description": "Barber appointment booking and inventory system",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
   },
   "scripts": {
     "start": "node index.js",
-    "build": "echo 'No build step required for backend'"
+    "dev": "nodemon index.js",
+    "test": "jest",
+    "build": "echo 'No build step required for backend'" 
+  },
+  "keywords": ["barber", "appointment", "booking", "inventory"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^2.2.1",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "uuid": "^9.0.1" 
+  },
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.11",
+    "supertest": "^7.1.4"
   }
 }
