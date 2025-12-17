@@ -14,10 +14,11 @@ function isValidId(id) {
   return id !== undefined && id !== null && String(id).length > 0;
 }
 
+// Generic function to create CRUD routes for a resource
 function mapRoutes(resource) {
   const base = `/api/${resource}`;
 
-  // list
+  // List all items
   app.get(base, async (req, res) => {
     try {
       const items = await db.list(resource);
@@ -27,18 +28,18 @@ function mapRoutes(resource) {
     }
   });
 
-  // get by id
+  // Get item by ID
   app.get(`${base}/:id`, async (req, res) => {
     try {
       const item = await db.getById(resource, req.params.id);
-      if (!item) return res.status(404).json({ error: `${resource.slice(0,-1)} not found` });
+      if (!item) return res.status(404).json({ error: `${resource.slice(0, -1)} not found` });
       res.json(item);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
   });
 
-  // create
+  // Create new item
   app.post(base, async (req, res) => {
     try {
       const created = await db.create(resource, req.body);
@@ -48,7 +49,7 @@ function mapRoutes(resource) {
     }
   });
 
-  // update
+  // Update item by ID
   app.put(`${base}/:id`, async (req, res) => {
     try {
       if (!isValidId(req.params.id)) return res.status(400).json({ error: 'Invalid id' });
@@ -60,7 +61,7 @@ function mapRoutes(resource) {
     }
   });
 
-  // delete
+  // Delete item by ID
   app.delete(`${base}/:id`, async (req, res) => {
     try {
       if (!isValidId(req.params.id)) return res.status(400).json({ error: 'Invalid id' });
@@ -72,16 +73,17 @@ function mapRoutes(resource) {
   });
 }
 
-// Create routes for the three collections
+// Create routes for the collections
 ['customers', 'services', 'appointments'].forEach(mapRoutes);
 
-// Serve index
+// Serve frontend index.html
 app.get('/', (req, res) => res.sendFile('index.html', { root: 'public' }));
 
+// Start server
 const PORT = process.env.PORT || 3000;
 db.ensureDataDir()
   .then(() => {
-    app.listen(PORT, () => console.log(`BarberFlow listening on ${PORT}`));
+    app.listen(PORT, () => console.log(`BarberFlow backend listening on port ${PORT}`));
   })
   .catch(err => {
     console.error('Failed to prepare data folder:', err);

@@ -1,4 +1,3 @@
-// app.js — frontend (works with the backend endpoints)
 const API = {
   customers: '/api/customers',
   services: '/api/services',
@@ -31,6 +30,7 @@ async function loadCustomers(){
     }
     html += '</tbody></table>';
     wrap.innerHTML = html;
+
     qsa('.del-cust', wrap).forEach(b=>b.addEventListener('click', async ()=>{
       if (!confirm('Delete customer?')) return;
       await fetchJSON(API.customers + '/' + b.dataset.id, { method:'DELETE' });
@@ -67,6 +67,7 @@ async function loadServices(){
     }
     html += '</tbody></table>';
     wrap.innerHTML = html;
+
     qsa('.del-svc', wrap).forEach(b=>b.addEventListener('click', async ()=>{
       if (!confirm('Delete service?')) return;
       await fetchJSON(API.services + '/' + b.dataset.id, { method:'DELETE' });
@@ -123,19 +124,31 @@ async function loadAppointments(filterDate = null){
         const cust = await (async ()=>{ try{ const c = await fetchJSON(API.customers + '/' + a.customerId); return c.name||'-'; }catch{return '-'} })();
         const svc = await (async ()=>{ try{ const s = await fetchJSON(API.services + '/' + a.serviceId); return s.title||'-'; }catch{return '-'} })();
         const time = a.time || (a.datetime ? (new Date(a.datetime)).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '');
-        html += `<tr><td>${escapeHtml(cust)}</td><td>${escapeHtml(svc)}</td><td>${escapeHtml(time)}</td><td>${escapeHtml(a.notes||'')}</td><td><button class="btn del-appt" data-id="${a.id}">Cancel</button></td></tr>`;
+        html += `<tr>
+          <td>${escapeHtml(cust)}</td>
+          <td>${escapeHtml(svc)}</td>
+          <td>${escapeHtml(time)}</td>
+          <td>${escapeHtml(a.notes||'')}</td>
+          <td>
+            <button class="btn edit-appt" data-id="${a.id}">Edit</button>
+            <button class="btn del-appt" data-id="${a.id}">Cancel</button>
+          </td>
+        </tr>`;
       }
       html += '</tbody></table>';
     }
     wrap.innerHTML = html || '<em>No appointments for selected date</em>';
 
+    // Bind edit buttons
+    qsa('.edit-appt', wrap).forEach(b=>b.addEventListener('click', ()=>editAppointment(b.dataset.id)));
+    // Bind delete buttons
     qsa('.del-appt', wrap).forEach(b=>b.addEventListener('click', async ()=>{
       if (!confirm('Cancel appointment?')) return;
       await fetchJSON(API.appointments + '/' + b.dataset.id, { method:'DELETE' });
       await loadAppointments(document.getElementById('filter-date').value || null);
     }));
   } catch (err) {
-    $id('appointments-list').innerHTML = `<pre>Error: ${err.message}</pre>`;
+    wrap.innerHTML = `<pre>Error: ${err.message}</pre>`;
   }
 }
 
@@ -153,7 +166,26 @@ async function submitAppointment(ev){
   await loadAppointments();
 }
 
-/* ---------- init ---------- */
+/* ---------- Update appointment ---------- */
+async function editAppointment(id){
+  const newDate = prompt("Enter new date (YYYY-MM-DD):");
+  if (!newDate) return;
+  const newTime = prompt("Enter new time (HH:MM):");
+  if (!newTime) return;
+
+  await fetchJSON(API.appointments + '/' + id, {
+    method: 'PUT',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify({ date: newDate, time: newTime })
+  });
+
+  alert('Appointment updated!');
+  await loadAppointments(document.getElementById('filter-date').value || null);
+}
+
+// ------------------------
+// UI Bindings
+// ------------------------
 function bindUI(){
   document.getElementById('customer-form').addEventListener('submit', submitCustomer);
   document.getElementById('service-form').addEventListener('submit', submitService);
@@ -162,6 +194,9 @@ function bindUI(){
   document.getElementById('btn-showall').addEventListener('click', ()=>{ document.getElementById('filter-date').value = ''; loadAppointments(); });
 }
 
+// ------------------------
+// Init
+// ------------------------
 async function init(){
   bindUI();
   await populateSelects();
@@ -171,3 +206,6 @@ async function init(){
 }
 
 init().catch(err=>console.error('Init error', err));
+
+// Expose editAppointment for inline button
+window.editAppointment = editAppointment;
